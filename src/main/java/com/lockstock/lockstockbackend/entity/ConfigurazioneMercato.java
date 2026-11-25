@@ -2,7 +2,6 @@ package com.lockstock.lockstockbackend.entity;
 
 import com.lockstock.lockstockbackend.entity.enums.StatoManuale;
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
 import java.time.LocalTime;
 

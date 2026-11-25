@@ -41,6 +41,6 @@ public class PortafoglioService {
     @Transactional(readOnly = true)
     public List<Posizione> getPosizioni(Long idPortafoglio){
         getMioPortafoglio(idPortafoglio);
-        return posizioneRepository.findByPortafoglioId(idPortafoglio);
+        return posizioneRepository.findByPortafoglioIdConTitolo(idPortafoglio);
     }
 }
