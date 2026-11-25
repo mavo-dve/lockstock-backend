@@ -39,9 +39,6 @@ public class Ordine {
     @Column(name="quantita_richiesta", nullable = false)
     private Integer quantitaRichiesta;
 
-    @Column(name="quantita_eseguita", nullable = false)
-    private Integer quantitaEseguita=0;
-
     @Column(name="prezzo_limite", nullable = true, precision = 9, scale = 2)
     private BigDecimal prezzoLimite;
 
@@ -50,6 +47,9 @@ public class Ordine {
 
     @Column(name="commissioni", nullable = false, precision = 9, scale = 2)
     private BigDecimal commissioni = BigDecimal.ZERO;
+
+    @Column(name="motivo_rifiuto", length = 255)
+    private String motivoRifiuto;
 
     @Column(name="data_inserimento", nullable = false, updatable = false)
     private LocalDateTime dataInserimento;
@@ -73,76 +73,107 @@ public class Ordine {
         if(dataInserimento==null) dataInserimento=LocalDateTime.now();
     }
 
-
-    public void setCommissioni(BigDecimal commissioni) {
-        this.commissioni = commissioni;
-    }
-
-    public void setDataEsecuzione(LocalDateTime dataEsecuzione) {
-        this.dataEsecuzione = dataEsecuzione;
-    }
-
-    public void setPrezzoMedioEseguito(BigDecimal prezzoMedioEseguito) {
-        this.prezzoMedioEseguito = prezzoMedioEseguito;
-    }
-
-    public void setQuantitaEseguita(Integer quantitaEseguita) {
-        this.quantitaEseguita = quantitaEseguita;
-    }
-
-    public void setStato(StatoOrdine stato) {
-        this.stato = stato;
-    }
-
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Portafoglio getPortafoglio() {
         return portafoglio;
     }
 
+    public void setPortafoglio(Portafoglio portafoglio) {
+        this.portafoglio = portafoglio;
+    }
+
     public Titolo getTitolo() {
         return titolo;
+    }
+
+    public void setTitolo(Titolo titolo) {
+        this.titolo = titolo;
     }
 
     public TipoOperazione getTipoOperazione() {
         return tipoOperazione;
     }
 
+    public void setTipoOperazione(TipoOperazione tipoOperazione) {
+        this.tipoOperazione = tipoOperazione;
+    }
+
     public TipoOrdine getTipoOrdine() {
         return tipoOrdine;
+    }
+
+    public void setTipoOrdine(TipoOrdine tipoOrdine) {
+        this.tipoOrdine = tipoOrdine;
     }
 
     public StatoOrdine getStato() {
         return stato;
     }
 
+    public void setStato(StatoOrdine stato) {
+        this.stato = stato;
+    }
+
     public Integer getQuantitaRichiesta() {
         return quantitaRichiesta;
     }
 
-    public Integer getQuantitaEseguita() {
-        return quantitaEseguita;
+    public void setQuantitaRichiesta(Integer quantitaRichiesta) {
+        this.quantitaRichiesta = quantitaRichiesta;
     }
 
     public BigDecimal getPrezzoLimite() {
         return prezzoLimite;
     }
 
+    public void setPrezzoLimite(BigDecimal prezzoLimite) {
+        this.prezzoLimite = prezzoLimite;
+    }
+
     public BigDecimal getPrezzoMedioEseguito() {
         return prezzoMedioEseguito;
+    }
+
+    public void setPrezzoMedioEseguito(BigDecimal prezzoMedioEseguito) {
+        this.prezzoMedioEseguito = prezzoMedioEseguito;
     }
 
     public BigDecimal getCommissioni() {
         return commissioni;
     }
 
+    public void setCommissioni(BigDecimal commissioni) {
+        this.commissioni = commissioni;
+    }
+
+    public String getMotivoRifiuto() {
+        return motivoRifiuto;
+    }
+
+    public void setMotivoRifiuto(String motivoRifiuto) {
+        this.motivoRifiuto = motivoRifiuto;
+    }
+
     public LocalDateTime getDataInserimento() {
         return dataInserimento;
     }
 
+    public void setDataInserimento(LocalDateTime dataInserimento) {
+        this.dataInserimento = dataInserimento;
+    }
+
     public LocalDateTime getDataEsecuzione() {
         return dataEsecuzione;
+    }
+
+    public void setDataEsecuzione(LocalDateTime dataEsecuzione) {
+        this.dataEsecuzione = dataEsecuzione;
     }
 }

@@ -69,6 +69,20 @@ CREATE TABLE m_etf (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
+--  Storico delle quotazioni (una riga per ogni variazione di prezzo)
+-- ---------------------------------------------------------------------
+CREATE TABLE m_storico_quotazione (
+                                      id         BIGINT        NOT NULL AUTO_INCREMENT,
+                                      fk_titolo  BIGINT        NOT NULL,
+                                      prezzo     DECIMAL(9,2)  NOT NULL,
+                                      data_ora   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                      PRIMARY KEY (id),
+                                      INDEX idx_storico_titolo_data (fk_titolo, data_ora),     -- grafici: titolo + intervallo
+                                      CONSTRAINT fk_storico_titolo  FOREIGN KEY (fk_titolo) REFERENCES m_titolo (id) ON DELETE CASCADE,
+                                      CONSTRAINT ck_storico_prezzo  CHECK (prezzo > 0)
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
 --  Portafogli
 -- ---------------------------------------------------------------------
 CREATE TABLE m_portafoglio (
@@ -93,24 +107,26 @@ CREATE TABLE m_ordine (
                           fk_titolo              BIGINT       NOT NULL,
                           tipo_operazione        ENUM('BUY','SELL')    NOT NULL,
                           tipo_ordine            ENUM('MARKET','LIMIT') NOT NULL,
-                          stato                  ENUM('PENDING','PARTIALLY_FILLED','FILLED','CANCELLED','REJECTED')
+                          stato                  ENUM('PENDING','FILLED','CANCELLED','REJECTED')
                                         NOT NULL DEFAULT 'PENDING',
                           quantita_richiesta     INT UNSIGNED NOT NULL,
-                          quantita_eseguita      INT UNSIGNED NOT NULL DEFAULT 0,
                           prezzo_limite          DECIMAL(9,2) NULL,
                           prezzo_medio_eseguito  DECIMAL(9,2) NULL,
                           commissioni            DECIMAL(9,2) NOT NULL DEFAULT 0.00,
+                          motivo_rifiuto         VARCHAR(255) NULL,                  -- valorizzato solo se REJECTED
                           data_inserimento       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
                           data_esecuzione        DATETIME     NULL,
                           PRIMARY KEY (id),
+                          INDEX idx_ordine_titolo_stato (fk_titolo, stato, tipo_ordine),   -- LIMIT eseguibili per titolo
                           CONSTRAINT fk_ordine_portafoglio FOREIGN KEY (fk_portafoglio) REFERENCES m_portafoglio (id),
                           CONSTRAINT fk_ordine_titolo      FOREIGN KEY (fk_titolo)      REFERENCES m_titolo (id),
                           CONSTRAINT ck_ordine_qta_richiesta CHECK (quantita_richiesta > 0),
-                          CONSTRAINT ck_ordine_qta_eseguita  CHECK (quantita_eseguita <= quantita_richiesta),
     -- LIMIT => prezzo_limite obbligatorio e positivo
                           CONSTRAINT ck_ordine_prezzo_limite CHECK (tipo_ordine <> 'LIMIT' OR (prezzo_limite IS NOT NULL AND prezzo_limite > 0)),
                           CONSTRAINT ck_ordine_prezzo_medio  CHECK (prezzo_medio_eseguito IS NULL OR prezzo_medio_eseguito > 0),
-                          CONSTRAINT ck_ordine_commissioni   CHECK (commissioni >= 0)
+                          CONSTRAINT ck_ordine_commissioni   CHECK (commissioni >= 0),
+    -- REJECTED => motivo obbligatorio
+                          CONSTRAINT ck_ordine_motivo        CHECK (stato <> 'REJECTED' OR motivo_rifiuto IS NOT NULL)
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -128,4 +144,28 @@ CREATE TABLE m_posizione (
                              CONSTRAINT fk_posizione_portafoglio FOREIGN KEY (fk_portafoglio) REFERENCES m_portafoglio (id),
                              CONSTRAINT fk_posizione_titolo      FOREIGN KEY (fk_titolo)      REFERENCES m_titolo (id),
                              CONSTRAINT ck_posizione_prezzo CHECK (prezzo_medio_carico >= 0)
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+--  Configurazione del mercato (UNA sola riga, id = 1)
+-- ---------------------------------------------------------------------
+CREATE TABLE m_configurazione_mercato (
+                                          id                 INT           NOT NULL,          -- niente AUTO_INCREMENT
+                                          ora_apertura       TIME          NOT NULL,
+                                          ora_chiusura       TIME          NOT NULL,
+                                          aperto_lunedi      BOOLEAN       NOT NULL,
+                                          aperto_martedi     BOOLEAN       NOT NULL,
+                                          aperto_mercoledi   BOOLEAN       NOT NULL,
+                                          aperto_giovedi     BOOLEAN       NOT NULL,
+                                          aperto_venerdi     BOOLEAN       NOT NULL,
+                                          aperto_sabato      BOOLEAN       NOT NULL,
+                                          aperto_domenica    BOOLEAN       NOT NULL,
+                                          stato_manuale      ENUM('AUTOMATICO','FORZATO_APERTO','FORZATO_CHIUSO') NOT NULL DEFAULT 'AUTOMATICO',
+                                          commissione_fissa  DECIMAL(9,2)  NOT NULL,
+                                          saldo_iniziale     DECIMAL(9,2)  NOT NULL,
+                                          PRIMARY KEY (id),
+                                          CONSTRAINT ck_configurazione_una_riga   CHECK (id = 1),     -- una sola riga ammessa
+                                          CONSTRAINT ck_configurazione_orari      CHECK (ora_chiusura > ora_apertura),
+                                          CONSTRAINT ck_configurazione_commissione CHECK (commissione_fissa >= 0),
+                                          CONSTRAINT ck_configurazione_saldo      CHECK (saldo_iniziale > 0)
 ) ENGINE=InnoDB;
