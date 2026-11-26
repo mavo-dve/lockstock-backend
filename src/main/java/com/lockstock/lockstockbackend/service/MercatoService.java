@@ -6,6 +6,8 @@ import com.lockstock.lockstockbackend.repository.ConfigurazioneMercatoRepository
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -40,6 +42,13 @@ public class MercatoService {
                 quando -> "Mercato chiuso: riapre"+quando.format(FORMATO)).orElse("Mercato chiusp: nessun giorno di apertura configurato");
     }
 
+    @Transactional(readOnly = true)
+    public BigDecimal getSaldoIniziale(){
+        return leggiConfiurazione().getSaldoIniziale();
+    }
+
+
+    // metodi privati
 
     private ConfigurazioneMercato leggiConfiurazione(){
         return configurazioneRepository.findById(ConfigurazioneMercato.ID_UNICO).orElseThrow(
@@ -80,4 +89,6 @@ public class MercatoService {
             case SUNDAY -> conf.getApertoDomenica();
         };
     }
+
+
 }
