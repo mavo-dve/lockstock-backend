@@ -77,40 +77,20 @@ public class Ordine {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public Portafoglio getPortafoglio() {
         return portafoglio;
-    }
-
-    public void setPortafoglio(Portafoglio portafoglio) {
-        this.portafoglio = portafoglio;
     }
 
     public Titolo getTitolo() {
         return titolo;
     }
 
-    public void setTitolo(Titolo titolo) {
-        this.titolo = titolo;
-    }
-
     public TipoOperazione getTipoOperazione() {
         return tipoOperazione;
     }
 
-    public void setTipoOperazione(TipoOperazione tipoOperazione) {
-        this.tipoOperazione = tipoOperazione;
-    }
-
     public TipoOrdine getTipoOrdine() {
         return tipoOrdine;
-    }
-
-    public void setTipoOrdine(TipoOrdine tipoOrdine) {
-        this.tipoOrdine = tipoOrdine;
     }
 
     public StatoOrdine getStato() {
@@ -125,16 +105,8 @@ public class Ordine {
         return quantitaRichiesta;
     }
 
-    public void setQuantitaRichiesta(Integer quantitaRichiesta) {
-        this.quantitaRichiesta = quantitaRichiesta;
-    }
-
     public BigDecimal getPrezzoLimite() {
         return prezzoLimite;
-    }
-
-    public void setPrezzoLimite(BigDecimal prezzoLimite) {
-        this.prezzoLimite = prezzoLimite;
     }
 
     public BigDecimal getPrezzoMedioEseguito() {
@@ -163,10 +135,6 @@ public class Ordine {
 
     public LocalDateTime getDataInserimento() {
         return dataInserimento;
-    }
-
-    public void setDataInserimento(LocalDateTime dataInserimento) {
-        this.dataInserimento = dataInserimento;
     }
 
     public LocalDateTime getDataEsecuzione() {

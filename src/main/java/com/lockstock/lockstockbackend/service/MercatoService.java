@@ -47,6 +47,11 @@ public class MercatoService {
         return leggiConfiurazione().getSaldoIniziale();
     }
 
+    @Transactional(readOnly = true)
+    public BigDecimal getCommissioneFissa(){
+        return leggiConfiurazione().getCommissioneFissa();
+    }
+
 
     // metodi privati
 
