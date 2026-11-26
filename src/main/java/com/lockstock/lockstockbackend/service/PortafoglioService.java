@@ -1,13 +1,17 @@
 package com.lockstock.lockstockbackend.service;
 
+import com.lockstock.lockstockbackend.dto.PortafoglioResponse;
+import com.lockstock.lockstockbackend.dto.PosizioneResponse;
 import com.lockstock.lockstockbackend.entity.Portafoglio;
 import com.lockstock.lockstockbackend.entity.Posizione;
+import com.lockstock.lockstockbackend.entity.Titolo;
 import com.lockstock.lockstockbackend.exception.RisorsaNonTrovataException;
 import com.lockstock.lockstockbackend.repository.PortafoglioRepository;
 import com.lockstock.lockstockbackend.repository.PosizioneRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -24,9 +28,9 @@ public class PortafoglioService {
     }
 
     @Transactional(readOnly = true)
-    public List<Portafoglio> getMieiPortafogli(){
+    public List<PortafoglioResponse> getMieiPortafogli(){
         Long idUtente = utenteCorrenteService.getIdUtenteCorrente();
-        return portafoglioRepository.findByUtenteId(idUtente);
+        return portafoglioRepository.findByUtenteId(idUtente).stream().map(this::toResponse).toList();
     }
 
     // il portafoglio solo se è dell'utente corrente; altrimenti "non trovato" (anche se esiste)
@@ -39,8 +43,26 @@ public class PortafoglioService {
     }
 
     @Transactional(readOnly = true)
-    public List<Posizione> getPosizioni(Long idPortafoglio){
+    public List<PosizioneResponse> getPosizioni(Long idPortafoglio){
         getMioPortafoglio(idPortafoglio);
-        return posizioneRepository.findByPortafoglioIdConTitolo(idPortafoglio);
+        return posizioneRepository.findByPortafoglioIdConTitolo(idPortafoglio).stream().map(this::toResponse).toList();
     }
+
+    @Transactional(readOnly = true)
+    public PortafoglioResponse getPortafoglio(Long idPortafoglio){
+        return toResponse(getMioPortafoglio(idPortafoglio));
+    }
+
+    private PortafoglioResponse toResponse(Portafoglio p){
+        return new PortafoglioResponse(p.getId(), p.getNome(), p.getNumero(), p.getSaldo(), p.getCreated());
+    }
+
+    private PosizioneResponse toResponse(Posizione pos){
+        Titolo t = pos.getTitolo();
+        BigDecimal qta = BigDecimal.valueOf(pos.getQuantitaTotale());
+        BigDecimal valoreAttuale = t.getQuotazione().multiply(qta);
+        BigDecimal risultato = t.getQuotazione().subtract(pos.getPrezzoMedioCarico()).multiply(qta);
+        return new PosizioneResponse(t.getId(), t.getTicker(), t.getNome(), pos.getQuantitaTotale(), pos.getPrezzoMedioCarico(), t.getQuotazione(), valoreAttuale, risultato);
+    }
+
 }

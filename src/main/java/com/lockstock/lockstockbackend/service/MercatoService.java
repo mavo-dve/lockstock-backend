@@ -80,5 +80,4 @@ public class MercatoService {
             case SUNDAY -> conf.getApertoDomenica();
         };
     }
-
 }
