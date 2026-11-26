@@ -19,7 +19,7 @@ public class StoricoQuotazione {
     @Column(name="prezzo", nullable = false, precision = 9, scale = 2)
     private BigDecimal prezzo;
 
-    @Column(name="data_ora", updatable = false)
+    @Column(name="data_ora", nullable = false, updatable = false)
     private LocalDateTime dataOra;
 
     protected StoricoQuotazione(){}
