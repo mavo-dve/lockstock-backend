@@ -91,6 +91,60 @@ public class OrdineService {
 
     }
 
+    //vendita
+    @Transactional
+    public OrdineResponse vendi(Long idPortafoglio, Long idTitolo, int quantita){
+        if(quantita<=0){
+            throw new OrdineNonValidoException("La quantità deve essere maggiore di zero");
+        }
+
+        Long idUtente = utenteCorrenteService.getIdUtenteCorrente();
+
+        Titolo titolo = titoloRepository.findByIdPerAggiornamento(idTitolo).orElseThrow(
+                () -> new RisorsaNonTrovataException("Titolo non trovato "+idTitolo+" non trovato")
+        );
+
+        Portafoglio portafoglio= portafoglioRepository.findByIdAndUtenteIdPerAggiornamento(idPortafoglio, idUtente).orElseThrow(
+                () -> new RisorsaNonTrovataException("Portafoglio "+idPortafoglio+" non trovato")
+        );
+
+        Ordine ordineVenduto = new Ordine(portafoglio, titolo, TipoOperazione.SELL, TipoOrdine.MARKET, quantita, null);
+
+        if(!mercatoService.isAperto()){
+            return rifiuta(ordineVenduto, mercatoService.motivoChiusura());
+        }
+        Optional<Posizione> esistente = posizioneRepository.findByPortafoglioIdAndTitoloId(idPortafoglio, idTitolo);
+        int posseduti = esistente.map(Posizione::getQuantitaTotale).orElse(0);
+        if(posseduti<quantita){
+            return rifiuta(ordineVenduto,"Non possiedi abbastanza titoli: vuoi vendere "+ quantita + ", ne hai "+ posseduti);
+        }
+        BigDecimal quotazione = titolo.getQuotazione();
+        BigDecimal commissioni = mercatoService.getCommissioneFissa();
+        BigDecimal saldoVendita = quotazione.multiply(BigDecimal.valueOf(quantita)).subtract(commissioni);
+
+        if(portafoglio.getSaldo().add(saldoVendita).compareTo(BigDecimal.ZERO) < 0){
+            return rifiuta(ordineVenduto, "Saldo insufficiente per pagare le commissioni");
+        }
+
+        titolo.setQuantitaDisponibile(titolo.getQuantitaDisponibile() + quantita);
+        portafoglio.setSaldo(portafoglio.getSaldo().add(saldoVendita));
+        Posizione pos = esistente.get();
+        int rimasti = posseduti-quantita;
+        if (rimasti == 0) {
+            posizioneRepository.delete(pos);
+        }else{
+            pos.setQuantitaTotale(rimasti);
+        }
+
+        ordineVenduto.setStato(StatoOrdine.FILLED);
+        ordineVenduto.setPrezzoMedioEseguito(quotazione);
+        ordineVenduto.setCommissioni(commissioni);
+        ordineVenduto.setDataEsecuzione(LocalDateTime.now());
+        return toResponse(ordineRepository.save(ordineVenduto));
+
+    }
+
+
     //riufiuta + motivo
     private OrdineResponse rifiuta(Ordine ordine, String motivo){
         ordine.setStato(StatoOrdine.REJECTED);
